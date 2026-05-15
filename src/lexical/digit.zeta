@@ -1,0 +1,12 @@
+// Auto-converted from /tmp/df-serde_json-1.0.149/serde_json-1.0.149/src/lexical/digit.rs
+
+#[inline]
+fn to_digit(c: u8) -> Option<u32> {
+ (c as char).to_digit(10)
+}
+
+#[inline]
+fn add_digit(value: u64, digit: u32) -> Option<u64> {
+ match value.checked_mul(10) { None => None, Some(n) => n.checked_add(digit as u64) }
+}
+

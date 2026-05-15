@@ -1,0 +1,70 @@
+// Auto-converted from /tmp/df-serde_json-1.0.149/serde_json-1.0.149/src/lexical/float.rs
+
+use super::num::*;
+use super::rounding::*;
+use super::shift::*;
+/// Extended precision floating-point type.
+/// 
+/// Private implementation, exposed only for testing purposes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ExtendedFloat {
+ pub mant: u64,
+ pub exp: i32,
+}
+
+impl ExtendedFloat {
+ fn mul(&self, b: &ExtendedFloat) -> ExtendedFloat {
+ debug_assert!((self.mant &u64::HIMASK != 0) && (b.mant &u64::HIMASK != 0));
+ let ah = self.mant>> u64::HALF;
+ let al = self.mant &u64::LOMASK;
+ let bh = b.mant>> u64::HALF;
+ let bl = b.mant &u64::LOMASK;
+ let ah_bl = ah * bl;
+ let al_bh = al * bh;
+ let al_bl = al * bl;
+ let ah_bh = ah * bh;
+ let mut tmp = (ah_bl &u64::LOMASK) + (al_bh &u64::LOMASK) + (al_bl>> u64::HALF);
+ tmp += 1 << (u64::HALF - 1);
+ ExtendedFloat { mant: ah_bh + (ah_bl>> u64::HALF) + (al_bh>> u64::HALF) + (tmp>> u64::HALF), exp: self.exp + b.exp + u64::FULL }
+ }
+ 
+ fn imul(&mut self, b: &ExtendedFloat) {
+ *self = self.mul(b);
+ }
+ 
+ fn normalize(&mut self) -> u32 {
+ let shift = if self.mant == 0 { 0 } else { self.mant.leading_zeros() };
+ shl(self, shift as i32);
+ shift
+ }
+ 
+ fn round_to_native(&mut self, algorithm: Algorithm) {
+ round_to_native::<F, _>(self, algorithm);
+ }
+ 
+ pub fn from_float(f: F) -> ExtendedFloat {
+ from_float(f)
+ }
+ 
+ fn into_float(self) -> F {
+ self.round_to_native::<F, _>(round_nearest_tie_even);
+ into_float(self)
+ }
+ 
+ fn into_downward_float(self) -> F {
+ self.round_to_native::<F, _>(round_downward);
+ into_float(self)
+ }
+ 
+}
+
+#[inline]
+fn from_float<F>(f: F) -> ExtendedFloat where F: Float {
+ ExtendedFloat { mant: u64::as_cast(f.mantissa()), exp: f.exponent() }
+}
+
+#[inline]
+fn into_float<F>(fp: ExtendedFloat) -> F where F: Float {
+ if fp.mant == 0 || fp.exp<F::DENORMAL_EXPONENT { F::ZERO } else if fp.exp>= F::MAX_EXPONENT { F::from_bits(F::INFINITY_BITS) } else { let exp: u64; if(fp.exp == F::DENORMAL_EXPONENT) && (fp.mant &F::HIDDEN_BIT_MASK.as_u64()) == 0 { exp = 0; } else { exp = (fp.exp + F::EXPONENT_BIAS) as u64; } let exp = exp << F::MANTISSA_SIZE; let mant = fp.mant &F::MANTISSA_MASK.as_u64(); F::from_bits(F::Unsigned::as_cast(mant | exp)) }
+}
+

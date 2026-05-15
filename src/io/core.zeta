@@ -1,0 +1,66 @@
+// Auto-converted from /tmp/df-serde_json-1.0.149/serde_json-1.0.149/src/io/core.rs
+
+use alloc::vec::Vec;
+use core::fmt::{ self, Display };
+use core::result;
+pub enum ErrorKind {
+ Other,
+}
+
+pub struct Error {
+}
+
+impl Display for Error {
+ fn fmt(&self, _formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+ unreachable!()
+ }
+ 
+}
+
+impl Error {
+ fn new(_kind: ErrorKind, _error: &str) -> Error {
+ Error
+ }
+ 
+}
+
+pub type Result<T> = result::Result<T, Error>;
+
+pub trait Write {
+ fn write(&mut self, buf: &[u8]) -> Result<usize>;
+ fn write_all(&mut self, buf: &[u8]) -> Result<()>;
+ fn flush(&mut self) -> Result<()>
+}
+
+impl<W: Write> Write for &mut W {
+ fn write(&mut self, buf: &[u8]) -> Result<usize> {
+ (*self).write(buf)
+ }
+ 
+ fn write_all(&mut self, buf: &[u8]) -> Result<()> {
+ (*self).write_all(buf)
+ }
+ 
+ fn flush(&mut self) -> Result<()> {
+ (*self).flush()
+ }
+ 
+}
+
+impl Write for Vec<u8> {
+ fn write(&mut self, buf: &[u8]) -> Result<usize> {
+ self.extend_from_slice(buf);
+ Ok(buf.len())
+ }
+ 
+ fn write_all(&mut self, buf: &[u8]) -> Result<()> {
+ self.extend_from_slice(buf);
+ Ok(())
+ }
+ 
+ fn flush(&mut self) -> Result<()> {
+ Ok(())
+ }
+ 
+}
+

@@ -1,0 +1,37 @@
+// Auto-converted from /tmp/df-serde_json-1.0.149/serde_json-1.0.149/src/lib.rs
+
+#[cfg(not(any(feature = "std", feature = "alloc")))] compile_error ! { "serde_json requires that either `std` (default) or `alloc` feature is enabled" }
+// [unsupported item]
+// [unsupported item]
+// [unsupported item]
+pub mod __private {
+ #[doc(hidden)] pub use alloc::vec
+}
+
+#[cfg(feature = "std")] #[cfg_attr(docsrs, doc(cfg(feature = "std")))] #[doc(inline)] pub use crate::de::from_reader;
+#[doc(inline)] pub use crate::de::{ from_slice, from_str, Deserializer, StreamDeserializer };
+#[doc(inline)] pub use crate::error::{ Error, Result };
+#[doc(inline)] pub use crate::ser::{ to_string, to_string_pretty, to_vec, to_vec_pretty };
+#[cfg(feature = "std")] #[cfg_attr(docsrs, doc(cfg(feature = "std")))] #[doc(inline)] pub use crate::ser::{ to_writer, to_writer_pretty, Serializer };
+#[doc(inline)] pub use crate::value::{ from_value, to_value, Map, Number, Value };
+macro_rules ! tri { ($ e: expr $ () ?) => { match $ e { core::result::Result::Ok(val) => val, core::result::Result::Err(err) => return core::result::Result::Err(err) } }; }
+#[macro_use]
+mod macros;
+pub mod de;
+pub mod error;
+pub mod map;
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+pub mod ser;
+#[cfg(not(feature = "std"))]
+mod ser;
+pub mod value;
+mod io;
+#[cfg(feature = "std")]
+mod iter;
+#[cfg(feature = "float_roundtrip")]
+mod lexical;
+mod number;
+mod read;
+#[cfg(feature = "raw_value")]
+mod raw;

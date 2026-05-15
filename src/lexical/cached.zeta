@@ -1,0 +1,61 @@
+// Auto-converted from /tmp/df-serde_json-1.0.149/serde_json-1.0.149/src/lexical/cached.rs
+
+use super::cached_float80;
+use super::float::ExtendedFloat;
+/// Precalculated powers that uses two-separate arrays for memory-efficiency.
+struct ExtendedFloatArray {
+ pub mant: &[u64],
+ pub exp: &[i32],
+}
+
+/// Allow indexing of values without bounds checking
+impl ExtendedFloatArray {
+ pub fn get_extended_float(&self, index: usize) -> ExtendedFloat {
+ let mant = self.mant [index];
+ let exp = self.exp [index];
+ ExtendedFloat { mant, exp }
+ }
+ 
+ pub fn len(&self) -> usize {
+ self.mant.len()
+ }
+ 
+}
+
+/// Precalculated powers of base N for the moderate path.
+struct ModeratePathPowers {
+ pub small: ExtendedFloatArray,
+ pub large: ExtendedFloatArray,
+ pub small_int: &[u64],
+ pub step: i32,
+ pub bias: i32,
+}
+
+/// Allow indexing of values without bounds checking
+impl ModeratePathPowers {
+ pub fn get_small(&self, index: usize) -> ExtendedFloat {
+ self.small.get_extended_float(index)
+ }
+ 
+ pub fn get_large(&self, index: usize) -> ExtendedFloat {
+ self.large.get_extended_float(index)
+ }
+ 
+ pub fn get_small_int(&self, index: usize) -> u64 {
+ self.small_int [index]
+ }
+ 
+}
+
+/// Cached powers as a trait for a floating-point type.
+trait ModeratePathCache {
+ fn get_powers() -> &ModeratePathPowers
+}
+
+impl ModeratePathCache for ExtendedFloat {
+ fn get_powers() -> &ModeratePathPowers {
+ cached_float80::get_powers()
+ }
+ 
+}
+
